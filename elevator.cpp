@@ -1,0 +1,91 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+
+// Abstract base class for an Elevator
+class Elevator {
+public:
+    virtual void move() = 0;
+    virtual void addFloorRequest(int floor) = 0;
+    virtual int getCurrentFloor() const = 0;
+};
+
+// Basic Elevator implementation
+class BasicElevator : public Elevator {
+public:
+    BasicElevator(int numFloors) : currentFloor(0) {
+        this->numFloors = numFloors;
+    }
+
+    void move() override {
+        if (!floorRequests.empty()) {
+            int targetFloor = floorRequests.front();
+            if (targetFloor >= 0 && targetFloor < numFloors) {
+                currentFloor = targetFloor;
+                floorRequests.pop();
+                std::cout << "Elevator is now on floor " << currentFloor << std::endl;
+            }
+        }
+    }
+
+    void addFloorRequest(int floor) override {
+        if (floor >= 0 && floor < numFloors) {
+            floorRequests.push(floor);
+        }
+    }
+
+    int getCurrentFloor() const override {
+        return currentFloor;
+    }
+
+private:
+    int currentFloor;
+    int numFloors;
+    std::queue<int> floorRequests;
+};
+
+// Dispatcher class for elevator management
+class ElevatorDispatcher {
+public:
+    ElevatorDispatcher(int numElevators) {
+        elevators.reserve(numElevators);
+        for (int i = 0; i < numElevators; i++) {
+            elevators.push_back(new BasicElevator(10)); // Change 10 to the number of floors
+        }
+    }
+
+    void requestElevator(int elevatorIndex, int targetFloor) {
+        if (elevatorIndex >= 0 && elevatorIndex < elevators.size()) {
+            elevators[elevatorIndex]->addFloorRequest(targetFloor);
+        } else {
+            std::cout << "Invalid elevator request." << std::endl;
+        }
+    }
+
+    void moveElevators() {
+        for (Elevator* elevator : elevators) {
+            elevator->move();
+        }
+    }
+
+    ~ElevatorDispatcher() {
+        for (Elevator* elevator : elevators) {
+            delete elevator;
+        }
+    }
+
+private:
+    std::vector<Elevator*> elevators;
+};
+
+int main() {
+    ElevatorDispatcher dispatcher(1); // 1 elevator
+    int elevatorIndex = 0; // Select the first elevator
+
+    dispatcher.requestElevator(elevatorIndex, 5); // Request the elevator to the 5th floor
+
+    // Simulate elevator movements (In a real application, you would schedule this appropriately)
+    dispatcher.moveElevators();
+
+    return 0;
+}
